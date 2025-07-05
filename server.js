@@ -21,7 +21,7 @@ const TMDB_API_KEY = process.env.TMDB_API_KEY;
 const STRAPI_API_URL = process.env.STRAPI_API_URL;
 const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
 const TMDB_GENRES_URL = `${TMDB_BASE_URL}/genre/movie/list`; // URL para obtener géneros de TMDB
-const TMDB_IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w500'; // <<--- ¡AÑADIR ESTA LÍNEA!
+const TMDB_IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w500'; 
 
 const SIMULATED_CITY = "Buenos Aires"; 
 
@@ -92,7 +92,7 @@ async function getStrapiGenreId(tmdbGenreId) {
             return null; 
         }
     }
-    return strapiGenreId; // <<--- ¡AÑADIR ESTA LÍNEA!
+    return strapiGenreId; 
 }
 
 
@@ -140,7 +140,7 @@ app.post('/api/cargar-peliculas', async (req, res) => {
                     strapiGenreIds.push(strapiId);
                 }
             }
-            
+            // editar para coincidir con el cont de strapi.
             const strapiMovieData = {
                 data: {
                     tmdb_id: movie.id, 
@@ -189,11 +189,11 @@ app.get('/api/peliculas', async (req, res) => {
 
         const strapiResponse = await axios.get(`${STRAPI_API_URL}/peliculas`, {
             params: {
-                'filters[city][$eq]': cityFilter, 
+//                filters: { city: { $eq: cityFilter } },
                 'populate': 'genero,actors' 
             }
         });
-
+//editar para coincidir con cont de strapi (populate).
         const moviesFromStrapi = strapiResponse.data.data.map(item => ({
             id: item.id, 
             tmdb_id: item.attributes.tmdb_id, 
