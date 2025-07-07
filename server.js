@@ -54,7 +54,11 @@ async function getStrapiGenreId(tmdbGenreId) {
         }
 
         try {
-            const strapiResponse = await axios.get(`${STRAPI_API_URL}/generos`); 
+            const strapiResponse = await axios.get(`${STRAPI_API_URL}/generos`, {
+              headers: {
+                  Authorization: `Bearer ${process.env.STRAPI_TOKEN}`
+                }
+            }); 
             const existingStrapiGenres = strapiResponse.data.data;
             existingStrapiGenres.forEach(genre => {
                 strapiGenresCache.set(genre.attributes.nombre, genre.id); 
@@ -83,6 +87,10 @@ async function getStrapiGenreId(tmdbGenreId) {
                 data: {
                     nombre: tmdbGenreName
                 }
+            }, {
+              headers: {
+                Authorization: `Bearer ${process.env.STRAPI_TOKEN}`
+              } 
             });
             strapiGenreId = createResponse.data.data.id;
             strapiGenresCache.set(tmdbGenreName, strapiGenreId); 
@@ -124,9 +132,11 @@ app.post('/api/cargar-peliculas', async (req, res) => {
             const existingMovie = await axios.get(`${STRAPI_API_URL}/peliculas`, {
                 params: {
                     'filters[tmdb_id][$eq]': movie.id 
+                },
+                headers: {
+                  Authorization: `Bearer ${process.env.STRAPI_TOKEN}`
                 }
             });
-
             if (existingMovie.data.data.length > 0) {
                 console.log(`Película "${movie.title}" (ID: ${movie.id}) ya existe en Strapi. Saltando.`);
                 duplicateMoviesCount++;
@@ -140,23 +150,23 @@ app.post('/api/cargar-peliculas', async (req, res) => {
                     strapiGenreIds.push(strapiId);
                 }
             }
-            // editar para coincidir con el cont de strapi.
+            // editar para coincidir con el strapi FALTAN ACTORES !
             const strapiMovieData = {
                 data: {
-                    tmdb_id: movie.id, 
                     titulo: movie.title, 
-                    overview: movie.overview, 
-                    poster_path: movie.poster_path ? `${TMDB_IMAGE_BASE_URL}${movie.poster_path}` : null, 
                     fecha_estreno: movie.release_date, 
                     cantidad_votos: movie.vote_count, 
                     promedio_votos: movie.vote_average, 
-                    city: SIMULATED_CITY,
                     genero: strapiGenreIds.length > 0 ? strapiGenreIds : null, 
                 }
             };
 
             try {
-                await axios.post(`${STRAPI_API_URL}/peliculas`, strapiMovieData);
+                await axios.post(`${STRAPI_API_URL}/peliculas`, strapiMovieData, {
+                  headers: {
+                    Authorization: `Bearer ${process.env.STRAPI_TOKEN}`
+                  }
+                });
                 console.log(`Película "${movie.title}" guardada en Strapi.`);
                 savedMoviesCount++;
             } catch (strapiError) {
@@ -191,19 +201,18 @@ app.get('/api/peliculas', async (req, res) => {
             params: {
 //                filters: { city: { $eq: cityFilter } },
                 'populate': 'genero,actors' 
-            }
+            }, 
+          headers: {
+            Authorization: `Bearer ${process.env.STRAPI_TOKEN}`
+          }
         });
 //editar para coincidir con cont de strapi (populate).
         const moviesFromStrapi = strapiResponse.data.data.map(item => ({
             id: item.id, 
-            tmdb_id: item.attributes.tmdb_id, 
             titulo: item.attributes.titulo, 
-            overview: item.attributes.overview, 
-            poster_path: item.attributes.poster_path, 
             fecha_estreno: item.attributes.fecha_estreno, 
             cantidad_votos: item.attributes.cantidad_votos, 
             promedio_votos: item.attributes.promedio_votos, 
-            city: item.attributes.city,
             genero: item.attributes.genero && item.attributes.genero.data 
                       ? (Array.isArray(item.attributes.genero.data) 
                           ? item.attributes.genero.data.map(g => g.attributes.nombre) 
@@ -214,7 +223,7 @@ app.get('/api/peliculas', async (req, res) => {
                       : []
         }));
 
-        console.log(`Se obtuvieron ${moviesFromStrapi.length} películas de Strapi para la ciudad: ${cityFilter}.`);
+        console.log(`Se obtuvieron ${moviesFromStrapi.length} películas de Strapi`);
         res.status(200).json(moviesFromStrapi);
 
     } catch (error) {
