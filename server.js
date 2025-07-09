@@ -23,7 +23,7 @@ const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
 const TMDB_GENRES_URL = `${TMDB_BASE_URL}/genre/movie/list`; // URL para obtener géneros de TMDB
 const TMDB_IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w500'; 
 
-const SIMULATED_CITY = "Buenos Aires"; 
+//const SIMULATED_CITY = "Buenos Aires"; 
 
 let tmdbGenresCache = null;
 let strapiGenresCache = null;
@@ -195,7 +195,12 @@ app.post('/api/cargar-peliculas', async (req, res) => {
 app.get('/api/peliculas', async (req, res) => {
     try {
         console.log('Obteniendo películas de Strapi...');
-        const cityFilter = req.query.city || SIMULATED_CITY; 
+
+
+        // Get the city from the query parameter. If not provided, default to 'Buenos Aires'
+        // This is where the "simulation" happens if your Strapi doesn't actually filter by city.
+        const selectedCity = req.query.city || 'Buenos Aires';
+        console.log(`Simulando películas para la ciudad: ${selectedCity}`);
 
         const strapiResponse = await axios.get(`${STRAPI_API_URL}/peliculas`, {
             params: {

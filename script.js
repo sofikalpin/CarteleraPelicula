@@ -4,10 +4,17 @@ const BACKEND_URL = 'http://localhost:3000/api';
 
 // Obtener referencias a los elementos del DOM
 const loadMoviesBtn = document.getElementById('loadMoviesBtn');
+const viewDataBtn = document.getElementById('viewDataBtn'); // Added this line
+const citySelect = document.getElementById('citySelect'); // Added this line
 const loadStatus = document.getElementById('loadStatus');
 const moviesContainer = document.getElementById('moviesContainer');
 const averageRatingElement = document.getElementById('averageRating');
 const noMoviesMessage = document.getElementById('noMoviesMessage');
+
+// Function to handle the "Visualizar datos" button click
+function VisualizarDatos() {
+    fetchAndDisplayMovies();
+}
 
 // Función para cargar y mostrar las películas desde Strapi (a través de tu backend)
 async function fetchAndDisplayMovies() {
@@ -15,9 +22,11 @@ async function fetchAndDisplayMovies() {
     noMoviesMessage.style.display = 'none'; // Ocultar mensaje de "no hay películas"
     averageRatingElement.textContent = 'Cargando...'; // Indicar que se está cargando
 
+    const selectedCity = citySelect.value;// Get the selected city from the dropdown
     try {
-        // Hacemos una solicitud GET a nuestro backend para obtener las películas desde Strapi
-        const response = await fetch(`${BACKEND_URL}/peliculas`);
+         // Hacemos una solicitud GET a nuestro backend para obtener las películas desde Strapi
+        // Pass the selected city as a query parameter
+        const response = await fetch(`${BACKEND_URL}/peliculas?city=${encodeURIComponent(selectedCity)}`);
         if (!response.ok) {
             // Si la respuesta HTTP no es exitosa (ej. 404, 500), lanzar un error
             throw new Error(`Error HTTP: ${response.status} - ${response.statusText}`);
@@ -104,6 +113,9 @@ loadMoviesBtn.addEventListener('click', async () => {
         console.error('Error al conectar con el backend:', error);
     }
 });
+
+// Event Listener for the city dropdown
+citySelect.addEventListener('change', fetchAndDisplayMovies); // When the city changes, refresh movies
 
 // Cargar las películas cuando la página se cargue por primera vez (al abrir index.html)
 document.addEventListener('DOMContentLoaded', fetchAndDisplayMovies);
