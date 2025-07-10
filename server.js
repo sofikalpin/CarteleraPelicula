@@ -52,7 +52,7 @@ async function getStrapiGenreId(tmdbGenreId) {
         }
 
         try {
-            const strapiResponse = await axios.get(`${STRAPI_API_URL}/generos`, {
+            const strapiResponse = await axios.get(`${STRAPI_API_URL}/g23-generos`, {
               headers: {
                   Authorization: `Bearer ${process.env.STRAPI_API_TOKEN}`
                 }
@@ -81,7 +81,7 @@ async function getStrapiGenreId(tmdbGenreId) {
     if (!strapiGenreId) {
         console.log(`Creando género "${tmdbGenreName}" en Strapi...`);
         try {
-            const createResponse = await axios.post(`${STRAPI_API_URL}/generos`, { 
+            const createResponse = await axios.post(`${STRAPI_API_URL}/g23-generos`, { 
                 data: {
                     nombre: tmdbGenreName
                 }
@@ -103,6 +103,8 @@ async function getStrapiGenreId(tmdbGenreId) {
 
 // 1. Endpoint para obtener películas de TheMovieDB y guardarlas en Strapi
 app.post('/api/cargar-peliculas', async (req, res) => {
+  console.log('LLEGÓ EL POST A /cargar-peliculas');
+  const selectedCity = req.query.city || 'Buenos Aires';    
     try {
         console.log('Iniciando carga de películas desde TheMovieDB a Strapi...');
 
@@ -126,7 +128,48 @@ app.post('/api/cargar-peliculas', async (req, res) => {
         let duplicateMoviesCount = 0;
 
         for (const movie of movies) {
-            const existingMovie = await axios.get(`${STRAPI_API_URL}/peliculas`, {
+          const creditsRes = await axios.get(`${TMDB_BASE_URL}/movie/${movie.id}/credits`, {
+            params: {
+              api_key: TMDB_API_KEY,
+              language: 'es-ES'
+            }
+        });
+        const cast = creditsRes.data.cast;
+        const topActors = cast.slice(0, 3); 
+        let strapiActorIds = [];
+
+        for (const actor of topActors) {
+          let strapiId = actorCache.get(actor.name); // cache tipo Map como en géneros
+          if (!strapiId) {
+            // Verificar si ya existe en Strapi
+            const res = await axios.get(`${STRAPI_API_URL}/g23-actors`, {
+              params: {
+                'filters[nombre][$eq]': actor.name
+              },
+              headers: {
+                Authorization: `Bearer ${process.env.STRAPI_TOKEN}`
+              }
+          });
+
+          if (res.data.data.length > 0) {
+            strapiId = res.data.data[0].id;
+          } else {
+            // Crear el actor si no existe
+            const createRes = await axios.post(`${STRAPI_API_URL}/g23-actors`, {
+              data: { nombre: actor.name }
+            }, {
+            headers: {
+              Authorization: `Bearer ${process.env.STRAPI_TOKEN}`
+            }
+        });
+
+              strapiId = createRes.data.data.id;
+              }
+                actorCache.set(actor.name, strapiId); // cachearlo
+              }
+              strapiActorIds.push(strapiId);
+            }
+            const existingMovie = await axios.get(`${STRAPI_API_URL}/g23-peliculas`, {
                 params: {
                     'filters[tmdb_id][$eq]': movie.id 
                 },
@@ -150,15 +193,19 @@ app.post('/api/cargar-peliculas', async (req, res) => {
             const strapiMovieData = {
                 data: {
                     titulo: movie.title, 
-                    fecha_estreno: movie.release_date, 
+                    fecha_estreno: movie.release_date,
                     cantidad_votos: movie.vote_count, 
-                    promedio_votos: movie.vote_average, 
-                    genero: strapiGenreIds.length > 0 ? strapiGenreIds : null, 
+                    promedio_votos: movie.vote_average,
+                    tmdb_id: movie.id,
+                    poster_path: movie.poster_path ? `${TMDB_IMAGE_BASE_URL}${movie.poster_path}` : null,
+                    ciudad: selectedCity,
+                    g_23_actors: strapiActorIds, 
+                    g_23_generos: strapiGenreIds.length > 0 ? strapiGenreIds : null, 
                 }
             };
 
             try {
-                await axios.post(`${STRAPI_API_URL}/peliculas`, strapiMovieData, {
+                await axios.post(`${STRAPI_API_URL}/g23-peliculas`, strapiMovieData, {
                   headers: {
                     Authorization: `Bearer ${process.env.STRAPI_API_TOKEN}`
                   }
@@ -198,7 +245,13 @@ app.get('/api/peliculas', async (req, res) => {
         const selectedCity = req.query.city || 'Buenos Aires';
         console.log(`Simulando películas para la ciudad: ${selectedCity}`);
 
-        const strapiResponse = await axios.get(`${STRAPI_API_URL}/g12-peliculas`, {
+        const strapiResponse = await axios.get(`${STRAPI_API_URL}/g23-peliculas`, {
+          params: {
+            populate:{
+              g_23_actors: true,
+              g_23_generos: true
+            }
+          },
           headers: {
             Authorization: `Bearer ${process.env.STRAPI_API_TOKEN}`
           }
@@ -207,10 +260,13 @@ app.get('/api/peliculas', async (req, res) => {
         const moviesFromStrapi = strapiResponse.data.data.map(item => ({
             id: item.id,
             titulo: item.titulo,
-            overview: item.sinopsis,
             cantidad_votos: item.cantidad_votos, 
-            promedio_votos: item.promedio_votos, 
-            generos: item.generos,
+            promedio_votos: item.promedio_votos,
+            tmdb_id: item.tmdb_id,
+            poster_path: item.poster_path,
+            ciudad: item.ciudad,
+            actores: item.g_23_actors?.data?.map(actor => actor.attributes.nombre) || [],
+            generos: item.g_23_generos?.data?.map(genre => genre.attributes.nombre) || [],
         }));
 
         console.log(`Se obtuvieron ${moviesFromStrapi.length} películas de Strapi`);
