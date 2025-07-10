@@ -1,6 +1,7 @@
 // La URL de tu backend de Node.js
 // ¡IMPORTANTE!: Asegúrate de que este puerto coincida con el que configuraste en tu server.js
-const BACKEND_URL = 'http://localhost:3000/api'; 
+const BACKEND_URL = 'http://localhost:3000/api';
+//import { makeMovieCard } from './movieCard.js'; // Importar la función para crear tarjetas de películas
 
 // Obtener referencias a los elementos del DOM
 const loadMoviesBtn = document.getElementById('loadMoviesBtn');
@@ -40,34 +41,10 @@ async function fetchAndDisplayMovies() {
             return;
         }
 
-        let totalRating = 0;
-
         // Iterar sobre cada película y crear su tarjeta de visualización
         movies.forEach(movie => {
-            totalRating += movie.promedio_votos; // Sumar el promedio de votos de cada película
-
-            const movieCard = document.createElement('div');
-            movieCard.className = 'movie-card';
-
-            // La 'poster_path' ya debe venir como una URL completa desde el backend
-            // Si no tienes este campo o no lo mapeas, considera poner una imagen placeholder por defecto
-            const imageUrl = movie.poster_path;
-            let prom = movie.promedio_votos || 0; // Asegurarse de que el promedio de votos sea un número:w
-            prom = parseFloat(prom); // Convertir a número si es necesario
-            
-            // Construir el HTML interno para la tarjeta de la película
-            movieCard.innerHTML = `
-                <img src="${imageUrl || 'https://via.placeholder.com/200x300?text=No+Image'}" alt="${movie.titulo}">
-                <div class="movie-info">
-                    <h3>${movie.titulo}</h3> 
-                    <p>Estreno: ${movie.fecha_estreno}</p> 
-                    <p class="rating">Rating: ${prom.toFixed(1)} / 10</p> 
-                    <p>Votos: ${movie.cantidad_votos}</p>
-                    ${movie.genero && movie.genero.length > 0 ? `<p>Géneros: ${Array.isArray(movie.genero) ? movie.genero.join(', ') : movie.genero}</p>` : ''}
-                    ${movie.actors && movie.actors.length > 0 ? `<p>Actores: ${movie.actors.join(', ')}</p>` : ''}
-                </div>
-            `;
-            moviesContainer.appendChild(movieCard); // Añadir la tarjeta al contenedor
+            const movieCard = makeMovieCard(movie); // Usar la función importada para crear la tarjeta
+            moviesContainer.appendChild(movieCard); // Agregar la tarjeta al contenedor de películas
         });
 
         // Calcular y mostrar el rating promedio general
@@ -121,3 +98,46 @@ citySelect.addEventListener('change', fetchAndDisplayMovies); // When the city c
 
 // Cargar las películas cuando la página se cargue por primera vez (al abrir index.html)
 document.addEventListener('DOMContentLoaded', fetchAndDisplayMovies);
+
+function makeMovieCard(movie) {
+    const movieCard = document.createElement('div');
+    // estilos para la tarjeta de la película
+    movieCard.className = "movie-card";
+    movieCard.style.display = "flex";
+    movieCard.style.flexDirection = "column";
+    movieCard.style.alignItems = "stretch"; // Para que los hijos ocupen el ancho completo
+    movieCard.style.gap = "1.5rem";
+    movieCard.style.backgroundColor = "#2e0f12";
+    movieCard.style.color = "#f5f5f5";
+    movieCard.style.padding = "0rem";
+    movieCard.style.paddingBottom = "1.5rem";
+    movieCard.style.borderRadius = "1rem";
+    movieCard.style.boxShadow = "0 0 10px #00000080";
+    movieCard.style.maxWidth = "800px";
+    movieCard.style.margin = "2rem auto";
+    movieCard.style.textAlign = "left"; // Para alinear el texto a la izquierda
+
+    let totalRating = 0; // Inicializar el total de rating
+    totalRating += movie.promedio_votos; // Sumar el promedio de votos de cada película
+
+    // La 'poster_path' ya debe venir como una URL completa desde el backend
+    // Si no tienes este campo o no lo mapeas, considera poner una imagen placeholder por defecto
+    const imageUrl = movie.poster_path;
+    let prom = movie.promedio_votos || 0; // Asegurarse de que el promedio de votos sea un número:w
+    prom = parseFloat(prom); // Convertir a número si es necesario
+    
+    // Construir el HTML interno para la tarjeta de la película
+    movieCard.innerHTML = `
+        <img src="${imageUrl || 'https://via.placeholder.com/200x300?text=No+Image'}" alt="${movie.titulo}">
+        <div class="movie-info">
+            <h3>${movie.titulo}</h3> 
+            <p>Estreno: ${movie.fecha_estreno}</p> 
+            <p class="rating">Rating: ${prom.toFixed(1)} / 10</p> 
+            <p>Votos: ${movie.cantidad_votos}</p>
+            ${movie.genero && movie.genero.length > 0 ? `<p>Géneros: ${Array.isArray(movie.genero) ? movie.genero.join(', ') : movie.genero}</p>` : ''}
+            ${movie.actors && movie.actors.length > 0 ? `<p>Actores: ${movie.actors.join(', ')}</p>` : ''}
+        </div>
+    `;
+
+    return movieCard;
+}
