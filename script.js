@@ -105,7 +105,7 @@ function makeMovieCard(movie) {
     movieCard.className = "movie-card";
     movieCard.style.display = "flex";
     movieCard.style.flexDirection = "column";
-    movieCard.style.alignItems = "stretch"; // Para que los hijos ocupen el ancho completo
+    movieCard.style.alignItems = "stretch";
     movieCard.style.gap = "1.5rem";
     movieCard.style.backgroundColor = "#2e0f12";
     movieCard.style.color = "#f5f5f5";
@@ -129,7 +129,7 @@ function makeMovieCard(movie) {
     // Construir el HTML interno para la tarjeta de la película
     movieCard.innerHTML = `
         <img src="${imageUrl || 'https://via.placeholder.com/200x300?text=No+Image'}" alt="${movie.titulo}">
-        <div class="movie-info">
+        <div class="movie-info" style="padding-left: 1.5rem;">
             <h3>${movie.titulo}</h3> 
             <p>Estreno: ${movie.fecha_estreno}</p> 
             <p class="rating">Rating: ${prom.toFixed(1)} / 10</p> 
