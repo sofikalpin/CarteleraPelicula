@@ -113,7 +113,7 @@ function makeMovieCard(movie) {
     movieCard.style.paddingBottom = "1.5rem";
     movieCard.style.borderRadius = "1rem";
     movieCard.style.boxShadow = "0 0 10px #00000080";
-    movieCard.style.maxWidth = "800px";
+    movieCard.style.maxWidth = "15dvw";
     movieCard.style.margin = "2rem auto";
     movieCard.style.textAlign = "left"; // Para alinear el texto a la izquierda
 
