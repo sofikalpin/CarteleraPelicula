@@ -8,13 +8,13 @@ const port = process.env.PORT || 3000;
 app.use(express.json());
 
 app.use((req, res, next) => {
-    res.setHeader('Access-Control-Allow-Origin', '*'); 
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    if (req.method === 'OPTIONS') {
-        return res.sendStatus(200);
-    }
-    next();
+res.setHeader('Access-Control-Allow-Origin', '*'); 
+res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+if (req.method === 'OPTIONS') {
+return res.sendStatus(200);
+}
+next();
 });
 
 const TMDB_API_KEY = process.env.TMDB_API_KEY;
@@ -27,12 +27,10 @@ let tmdbGenresCache = null;
 let strapiGenresCache = null;
 
 async function fetchTmdbGenres() {
-    if (tmdbGenresCache) return tmdbGenresCache;
+     if (tmdbGenresCache) return tmdbGenresCache;
 
     try {
-        const response = await axios.get(TMDB_GENRES_URL, {
-            params: { api_key: TMDB_API_KEY, language: 'es-ES' }
-        });
+        const response = await axios.get(TMDB_GENRES_URL, {params: { api_key: TMDB_API_KEY, language: 'es-ES' }});
         tmdbGenresCache = response.data.genres;
         console.log('Géneros de TMDB cargados y cacheados.');
         return tmdbGenresCache;
@@ -47,52 +45,53 @@ async function getStrapiGenreId(tmdbGenreId) {
         strapiGenresCache = new Map(); 
         const tmdbGenres = await fetchTmdbGenres();
         if (tmdbGenres.length === 0) {
-            console.warn('No se pudieron obtener géneros de TMDB, no se podrá mapear géneros.');
-            return null;
+         console.warn('No se pudieron obtener géneros de TMDB, no se podrá mapear géneros.');
+        return null;
         }
 
         try {
-            const strapiResponse = await axios.get(`${STRAPI_API_URL}/g23-generos`, {
-              headers: {
-                  Authorization: `Bearer ${process.env.STRAPI_API_TOKEN}`
-                }
+             const strapiResponse = await axios.get(`${STRAPI_API_URL}/g23-generos`, {
+             headers: {
+             Authorization: `Bearer ${process.env.STRAPI_API_TOKEN}`
+             }
             }); 
-            const existingStrapiGenres = strapiResponse.data.data;
-            existingStrapiGenres.forEach(genre => {
-                strapiGenresCache.set(genre.attributes.nombre, genre.id); 
-            });
-            console.log(`Géneros existentes en Strapi cargados: ${existingStrapiGenres.length}`);
+             const existingStrapiGenres = strapiResponse.data.data;
+             existingStrapiGenres.forEach(genre => {
+             strapiGenresCache.set(genre.attributes.nombre, genre.id); 
+             });
+             console.log(`Géneros existentes en Strapi cargados: ${existingStrapiGenres.length}`);
         } catch (error) {
-            console.error('Error al obtener géneros de Strapi:', error.response ? error.response.data : error.message);
-            // Continuar incluso si falla la obtención de géneros de Strapi
-        }
-    }
+             console.error('Error al obtener géneros de Strapi:', error.response ? error.response.data : error.message);
+             // Continuar incluso si falla la obtención de géneros de Strapi
+         }
+     }
 
     const tmdbGenre = tmdbGenresCache.find(g => g.id === tmdbGenreId);
-    if (!tmdbGenre) {
-        console.warn(`Género TMDB con ID ${tmdbGenreId} no encontrado.`);
-        return null;
-    }
+     if (!tmdbGenre) {
+     console.warn(`Género TMDB con ID ${tmdbGenreId} no encontrado.`);
+     return null;
+     }
 
     const tmdbGenreName = tmdbGenre.name;
     let strapiGenreId = strapiGenresCache.get(tmdbGenreName);
 
-    // Si el género no está en Strapi, crearlo
-    if (!strapiGenreId) {
-        console.log(`Creando género "${tmdbGenreName}" en Strapi...`);
-        try {
-            const createResponse = await axios.post(`${STRAPI_API_URL}/g23-generos`, { 
-                data: {
-                    nombre: tmdbGenreName
+
+     // Si el género no está en Strapi, crearlo
+     if (!strapiGenreId) {
+     console.log(`Creando género "${tmdbGenreName}" en Strapi...`);
+     try {
+        const createResponse = await axios.post(`${STRAPI_API_URL}/g23-generos`, { // <-- SOLUCIÓN 2 AQUÍ
+            data:{
+                nombre: tmdbGenreName
                 }
-            }, {
-              headers: {
-                Authorization: `Bearer ${process.env.STRAPI_API_TOKEN}`
-              } 
-            });
-            strapiGenreId = createResponse.data.data.id;
-            strapiGenresCache.set(tmdbGenreName, strapiGenreId); 
-            console.log(`Género "${tmdbGenreName}" creado con ID ${strapiGenreId} en Strapi.`);
+             }, {
+             headers: {
+             Authorization: `Bearer ${process.env.STRAPI_API_TOKEN}`
+             } 
+        });
+             strapiGenreId = createResponse.data.data.id;
+             strapiGenresCache.set(tmdbGenreName, strapiGenreId); 
+             console.log(`Género "${tmdbGenreName}" creado con ID ${strapiGenreId} en Strapi.`);
         } catch (error) {
             console.error(`Error al crear el género "${tmdbGenreName}" en Strapi:`, error.response ? error.response.data : error.message);
             return null; 
@@ -102,172 +101,151 @@ async function getStrapiGenreId(tmdbGenreId) {
 }
 
 // 1. Endpoint para obtener películas de TheMovieDB y guardarlas en Strapi
-app.post('/api/cargar-peliculas', async (req, res) => {
-  console.log('LLEGÓ EL POST A /cargar-peliculas');
-  const selectedCity = req.query.city || 'Buenos Aires';    
-    try {
+
+app.post('/api/cargar-g23-peliculas', async (req, res) => {
+     try {
         console.log('Iniciando carga de películas desde TheMovieDB a Strapi...');
 
-        await fetchTmdbGenres(); 
+     await fetchTmdbGenres(); 
         if (!tmdbGenresCache || tmdbGenresCache.length === 0) {
-            throw new Error('No se pudieron obtener los géneros de TheMovieDB. Imposible continuar.');
+          throw new Error('No se pudieron obtener los géneros de TheMovieDB. Imposible continuar.');
         }
 
-        const tmdbResponse = await axios.get(`${TMDB_BASE_URL}/movie/now_playing`, {
-            params: {
-                api_key: TMDB_API_KEY,
-                language: 'es-ES',
-                page: 1
-            }
-        });
-
-        const movies = tmdbResponse.data.results;
-        console.log(`Se obtuvieron ${movies.length} películas de TheMovieDB.`);
-
-        let savedMoviesCount = 0;
-        let duplicateMoviesCount = 0;
-
-        for (const movie of movies) {
-          const creditsRes = await axios.get(`${TMDB_BASE_URL}/movie/${movie.id}/credits`, {
-            params: {
-              api_key: TMDB_API_KEY,
-              language: 'es-ES'
-            }
-        });
-        const cast = creditsRes.data.cast;
-        const topActors = cast.slice(0, 3); 
-        let strapiActorIds = [];
-
-        for (const actor of topActors) {
-          let strapiId = actorCache.get(actor.name); // cache tipo Map como en géneros
-          if (!strapiId) {
-            // Verificar si ya existe en Strapi
-            const res = await axios.get(`${STRAPI_API_URL}/g23-actors`, {
-              params: {
-                'filters[nombre][$eq]': actor.name
-              },
-              headers: {
-                Authorization: `Bearer ${process.env.STRAPI_TOKEN}`
-              }
-          });
-
-          if (res.data.data.length > 0) {
-            strapiId = res.data.data[0].id;
-          } else {
-            // Crear el actor si no existe
-            const createRes = await axios.post(`${STRAPI_API_URL}/g23-actors`, {
-              data: { nombre: actor.name }
-            }, {
-            headers: {
-              Authorization: `Bearer ${process.env.STRAPI_TOKEN}`
-            }
-        });
-
-              strapiId = createRes.data.data.id;
-              }
-                actorCache.set(actor.name, strapiId); // cachearlo
-              }
-              strapiActorIds.push(strapiId);
-            }
-            const existingMovie = await axios.get(`${STRAPI_API_URL}/g23-peliculas`, {
-                params: {
-                    'filters[tmdb_id][$eq]': movie.id 
-                },
-                headers: {
-                  Authorization: `Bearer ${process.env.STRAPI_API_TOKEN}`
+    const tmdbResponse = await axios.get(`${TMDB_BASE_URL}/movie/now_playing`, {
+        params: {
+                 api_key: TMDB_API_KEY,
+                 language: 'es-ES',
+                 page: 1
                 }
-            });
-            if (existingMovie.data.data.length > 0) {
+     });
+
+    const movies = tmdbResponse.data.results;
+    console.log(`Se obtuvieron ${movies.length} películas de TheMovieDB.`);
+
+    let savedMoviesCount = 0;
+    let duplicateMoviesCount = 0;
+
+    for (const movie of movies) { // <-- INICIO DEL BUCLE 'FOR' (Solución 1)
+        const existingMovie = await axios.get(`${STRAPI_API_URL}/g23-peliculas`, {
+         params: {
+                 'filters[tmdb_id][$eq]': movie.id 
+                 },
+                 headers: {
+                 Authorization: `Bearer ${process.env.STRAPI_API_TOKEN}`
+                 }
+        });
+             if (existingMovie.data.data.length > 0) {
                 console.log(`Película "${movie.title}" (ID: ${movie.id}) ya existe en Strapi. Saltando.`);
                 duplicateMoviesCount++;
                 continue; 
-            }
+             }
 
-            const strapiGenreIds = [];
+         const strapiGenreIds = [];
             for (const tmdbGenreId of movie.genre_ids) {
-                const strapiId = await getStrapiGenreId(tmdbGenreId);
+            const strapiId = await getStrapiGenreId(tmdbGenreId);
                 if (strapiId) {
-                    strapiGenreIds.push(strapiId);
+                 strapiGenreIds.push(strapiId);
                 }
             }
-            const strapiMovieData = {
-                data: {
+
+         const posterUrl = movie.poster_path ? `${TMDB_IMAGE_BASE_URL}${movie.poster_path}` : null;
+
+         const strapiMovieData = {
+             data: {
                     titulo: movie.title, 
                     fecha_estreno: movie.release_date,
                     cantidad_votos: movie.vote_count, 
-                    promedio_votos: movie.vote_average,
-                    tmdb_id: movie.id,
-                    poster_path: movie.poster_path ? `${TMDB_IMAGE_BASE_URL}${movie.poster_path}` : null,
-                    ciudad: selectedCity,
-                    g_23_actors: strapiActorIds, 
-                    g_23_generos: strapiGenreIds.length > 0 ? strapiGenreIds : null, 
+                    promedio_votos: movie.vote_average, 
+                    g_23_generos: strapiGenreIds.length > 0 ? strapiGenreIds : null, // <-- SOLUCIÓN 3 AQUÍ
+                    tmdb_id: movie.id, // Es bueno guardar el ID de TMDB para evitar duplicados*/
+                    poster_path: posterUrl, // <-- ¡AÑADE ESTA LÍNEA!
                 }
             };
 
-            try {
-                await axios.post(`${STRAPI_API_URL}/g23-peliculas`, strapiMovieData, {
-                  headers: {
-                    Authorization: `Bearer ${process.env.STRAPI_API_TOKEN}`
-                  }
+             try {
+                await axios.post(`${STRAPI_API_URL}/g23-peliculas`, strapiMovieData, { // <-- URL DE LA COLECCIÓN DE PELÍCULAS
+                headers: {
+                     Authorization: `Bearer ${process.env.STRAPI_API_TOKEN}`
+                     }
                 });
                 console.log(`Película "${movie.title}" guardada en Strapi.`);
                 savedMoviesCount++;
-            } catch (strapiError) {
-                console.error(`Error al guardar la película "${movie.title}" en Strapi:`, strapiError.response ? strapiError.response.data : strapiError.message);
-            }
-        }
+             } catch (strapiError) {
+             console.error(`Error al guardar la película "${movie.title}" en Strapi:`, strapiError.response ? strapiError.response.data : strapiError.message);
+             }
+        } // <-- ¡SOLUCIÓN 1: ESTA LLAVE DE CIERRE '}' ES LA CORRECTA PARA EL BUCLE 'FOR'!
 
-        res.status(200).json({
+            res.status(200).json({
             message: `Proceso de carga finalizado. ${savedMoviesCount} películas nuevas guardadas, ${duplicateMoviesCount} películas ya existentes.`,
             total_movies_processed: movies.length
-        });
+         });
 
-    } catch (error) {
-        console.error('Error general al cargar las películas:', error.message);
-        if (error.response) {
-            console.error('Detalles del error de la API (TMDB o Strapi):', error.response.data);
-        }
-        res.status(500).json({
-            message: 'Error al procesar la solicitud de carga de películas.',
-            error: error.message
-        });
-    }
+     } catch (error) {
+         console.error('Error general al cargar las películas:', error.message);
+         if (error.response) {
+             console.error('Detalles del error de la API (TMDB o Strapi):', error.response.data);
+         }
+         res.status(500).json({
+         message: 'Error al procesar la solicitud de carga de películas.',
+         error: error.message
+         });
+     }
 });
 
-// 2. Endpoint para obtener películas de Strapi
-app.get('/api/peliculas', async (req, res) => {
+
+app.get('/api/g23-peliculas', async (req, res) => {
     try {
         console.log('Obteniendo películas de Strapi...');
 
-
-        // Get the city from the query parameter. If not provided, default to 'Buenos Aires'
-        // This is where the "simulation" happens if your Strapi doesn't actually filter by city.
         const selectedCity = req.query.city || 'Buenos Aires';
         console.log(`Simulando películas para la ciudad: ${selectedCity}`);
 
-        const strapiResponse = await axios.get(`${STRAPI_API_URL}/g23-peliculas`, {
-          params: {
-            populate:{
-              g_23_actors: true,
-              g_23_generos: true
+    const strapiResponse = await axios.get(`${STRAPI_API_URL}/g23-peliculas`, {
+    params: {
+            'populate': {
+             'g_23_generos': { // Popula el campo de relación g_23_generos
+                fields: ['nombre'] 
+             },
+            'g_23_actors': {  // Popula el campo de relación g_23_actors
+             fields: ['nombre'] 
+             }
             }
-          },
-          headers: {
-            Authorization: `Bearer ${process.env.STRAPI_API_TOKEN}`
-          }
-        });
+        },
+        headers: {
+             Authorization: `Bearer ${process.env.STRAPI_API_TOKEN}`
+        }
+    });
         console.log(strapiResponse.data);     
-        const moviesFromStrapi = strapiResponse.data.data.map(item => ({
-            id: item.id,
-            titulo: item.titulo,
-            cantidad_votos: item.cantidad_votos, 
-            promedio_votos: item.promedio_votos,
-            tmdb_id: item.tmdb_id,
-            poster_path: item.poster_path,
-            ciudad: item.ciudad,
-            actores: item.g_23_actors?.data?.map(actor => actor.attributes.nombre) || [],
-            generos: item.g_23_generos?.data?.map(genre => genre.attributes.nombre) || [],
-        }));
+   
+const moviesFromStrapi = strapiResponse.data.data.map(item => {
+
+    // Manejo de género
+    let generoDisplay = null;
+    if (item.g_23_generos && Array.isArray(item.g_23_generos)) {
+        generoDisplay = item.g_23_generos.map(g => g.nombre);
+    }
+   
+
+    // Manejo de actores
+    let actorNames = [];
+    if (item.g_23_actors && Array.isArray(item.g_23_actors)) {
+        actorNames = item.g_23_actors.map(actor => actor.nombre);
+    }
+    
+
+    return {
+        id: item.id,
+        titulo: item.titulo,
+        sinopsis: item.sinopsis,
+        cantidad_votos: item.cantidad_votos,
+        promedio_votos: item.promedio_votos,
+        fecha_estreno: item.fecha_estreno,
+        poster_path: item.poster_path,
+        genero: generoDisplay, 
+        actors: actorNames 
+    };
+});
+
 
         console.log(`Se obtuvieron ${moviesFromStrapi.length} películas de Strapi`);
         res.status(200).json(moviesFromStrapi);
