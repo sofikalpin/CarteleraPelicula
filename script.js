@@ -51,7 +51,9 @@ async function fetchAndDisplayMovies() {
 
             // La 'poster_path' ya debe venir como una URL completa desde el backend
             // Si no tienes este campo o no lo mapeas, considera poner una imagen placeholder por defecto
-            const imageUrl = movie.poster_path; 
+            const imageUrl = movie.poster_path;
+            let prom = movie.promedio_votos || 0; // Asegurarse de que el promedio de votos sea un número:w
+            prom = parseFloat(prom); // Convertir a número si es necesario
             
             // Construir el HTML interno para la tarjeta de la película
             movieCard.innerHTML = `
@@ -59,7 +61,7 @@ async function fetchAndDisplayMovies() {
                 <div class="movie-info">
                     <h3>${movie.titulo}</h3> 
                     <p>Estreno: ${movie.fecha_estreno}</p> 
-                    <p class="rating">Rating: ${movie.promedio_votos.toFixed(1)} / 10</p> 
+                    <p class="rating">Rating: ${prom.toFixed(1)} / 10</p> 
                     <p>Votos: ${movie.cantidad_votos}</p>
                     ${movie.genero && movie.genero.length > 0 ? `<p>Géneros: ${Array.isArray(movie.genero) ? movie.genero.join(', ') : movie.genero}</p>` : ''}
                     ${movie.actors && movie.actors.length > 0 ? `<p>Actores: ${movie.actors.join(', ')}</p>` : ''}
