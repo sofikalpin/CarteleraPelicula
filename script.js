@@ -1,13 +1,9 @@
-// La URL de tu backend de Node.js
-// ¡IMPORTANTE!: Asegúrate de que este puerto coincida con el que configuraste en tu server.js
 const BACKEND_URL = 'http://localhost:3000/api';
 
-// Obtener referencias a los elementos del DOM
 const loadMoviesBtn = document.getElementById('loadMoviesBtn');
 const viewDataBtn = document.getElementById('viewDataBtn');
 const citySelect = document.getElementById('citySelect');
 
-// NEW: Reference to the status messages container
 const statusMessagesContainer = document.getElementById('statusMessagesContainer');
 const loadStatus = document.getElementById('loadStatus');
 const noMoviesMessage = document.getElementById('noMoviesMessage');
@@ -15,15 +11,12 @@ const noMoviesMessage = document.getElementById('noMoviesMessage');
 const moviesContainer = document.getElementById('moviesContainer');
 const averageRatingElement = document.getElementById('averageRating');
 
-// Helper function to manage status message visibility
 function showStatusMessage(elementToShow, message, color = null) {
-    // Hide all potential status messages first
     loadStatus.style.display = 'none';
     noMoviesMessage.style.display = 'none';
-    loadStatus.textContent = ''; // Clear previous messages
-    noMoviesMessage.textContent = ''; // Clear previous messages
+    loadStatus.textContent = ''; 
+    noMoviesMessage.textContent = ''; 
 
-    // Show the desired message
     if (elementToShow) {
         elementToShow.textContent = message;
         elementToShow.style.display = 'block';
@@ -33,17 +26,14 @@ function showStatusMessage(elementToShow, message, color = null) {
     }
 }
 
-// Function to handle the "Visualizar datos" button click
 function VisualizarDatos() {
-    showStatusMessage(null); // Clear any existing status messages
+    showStatusMessage(null); 
     fetchAndDisplayMovies();
 }
-
-// Función para cargar y mostrar las películas desde Strapi (a través de tu backend)
 async function fetchAndDisplayMovies() {
-    moviesContainer.innerHTML = ''; // Limpiar el contenedor antes de cargar
-    averageRatingElement.textContent = 'Cargando...'; // Indicar que se está cargando
-    showStatusMessage(null); // Hide any previous status messages when starting a new fetch
+    moviesContainer.innerHTML = ''; 
+    averageRatingElement.textContent = 'Cargando...'; 
+    showStatusMessage(null); 
 
     const selectedCity = citySelect.value;
     try {
@@ -67,18 +57,17 @@ async function fetchAndDisplayMovies() {
             return;
         }
 
-        let totalRating = 0; // Inicializar el total de rating AQUI, fuera del forEach
-
+        let totalRating = 0; 
         uniqueMovies.forEach(movie => {
-            totalRating += parseFloat(movie.promedio_votos); // Sumar el promedio de votos (convertido a número)
-            const movieCard = makeMovieCard(movie); // Llama a la función makeMovieCard
-            moviesContainer.appendChild(movieCard); // Añadir la tarjeta al contenedor
+            totalRating += parseFloat(movie.promedio_votos); 
+            const movieCard = makeMovieCard(movie); 
+            moviesContainer.appendChild(movieCard); 
         });
 
-        // Calcular y mostrar el rating promedio general
+       
         const average = totalRating / uniqueMovies.length;
         averageRatingElement.textContent = average.toFixed(2);
-        showStatusMessage(null); // Clear any status message if movies are successfully displayed
+        showStatusMessage(null); 
 
     } catch (error) {
         console.error('Error al obtener y mostrar las películas:', error);
@@ -87,7 +76,7 @@ async function fetchAndDisplayMovies() {
     }
 }
 
-// Event Listener para el botón de cargar películas
+
 loadMoviesBtn.addEventListener('click', async () => {
     showStatusMessage(loadStatus, 'Cargando películas... Esto puede tardar un momento.', 'var(--info-color)');
 
@@ -103,13 +92,13 @@ loadMoviesBtn.addEventListener('click', async () => {
         const data = await response.json();
 
         if (response.ok) {
-            // Check if the message contains "ya existen" to use a different color or message
+           
             if (data.message.includes('ya existen')) {
-                showStatusMessage(loadStatus, `Éxito: ${data.message}`, 'orange'); // Use orange for "already exists"
+                showStatusMessage(loadStatus, `Éxito: ${data.message}`, 'orange'); 
             } else {
                 showStatusMessage(loadStatus, `Éxito: ${data.message}`, 'var(--success-color)');
             }
-            await fetchAndDisplayMovies(); // Refresh movies after loading
+            await fetchAndDisplayMovies(); 
         } else {
             showStatusMessage(loadStatus, `Error: ${data.message || 'No se pudo cargar las películas.'}`, 'var(--error-color)');
             console.error('Error al cargar películas desde el backend:', data);
@@ -120,20 +109,19 @@ loadMoviesBtn.addEventListener('click', async () => {
     }
 });
 
-// Event Listener for the city dropdown
+
 citySelect.addEventListener('change', fetchAndDisplayMovies);
 
-// Cargar las películas cuando la página se cargue por primera vez (al abrir index.html)
+
 document.addEventListener('DOMContentLoaded', () => {
-    showStatusMessage(null); // Ensure all messages are hidden on initial load
+    showStatusMessage(null); 
     fetchAndDisplayMovies();
 });
 
 
-// === makeMovieCard - Función para crear la tarjeta de una película ===
 function makeMovieCard(movie) {
     const movieCard = document.createElement('div');
-    movieCard.className = "movie-card"; // Apply the class defined in styles.css
+    movieCard.className = "movie-card"; 
 
     const imageUrl = movie.poster_path;
     let prom = movie.promedio_votos;

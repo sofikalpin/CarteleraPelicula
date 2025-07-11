@@ -20,7 +20,7 @@ next();
 const TMDB_API_KEY = process.env.TMDB_API_KEY;
 const STRAPI_API_URL = process.env.STRAPI_API_URL;
 const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
-const TMDB_GENRES_URL = `${TMDB_BASE_URL}/genre/movie/list`; // URL para obtener géneros de TMDB
+const TMDB_GENRES_URL = `${TMDB_BASE_URL}/genre/movie/list`; 
 const TMDB_IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w500'; 
 
 let tmdbGenresCache = null;
@@ -62,7 +62,6 @@ async function getStrapiGenreId(tmdbGenreId) {
              console.log(`Géneros existentes en Strapi cargados: ${existingStrapiGenres.length}`);
         } catch (error) {
              console.error('Error al obtener géneros de Strapi:', error.response ? error.response.data : error.message);
-             // Continuar incluso si falla la obtención de géneros de Strapi
          }
      }
 
@@ -76,7 +75,6 @@ async function getStrapiGenreId(tmdbGenreId) {
     let strapiGenreId = strapiGenresCache.get(tmdbGenreName);
 
 
-     // Si el género no está en Strapi, crearlo
      if (!strapiGenreId) {
      console.log(`Creando género "${tmdbGenreName}" en Strapi...`);
      try {
@@ -99,8 +97,6 @@ async function getStrapiGenreId(tmdbGenreId) {
     }
     return strapiGenreId; 
 }
-
-// 1. Endpoint para obtener películas de TheMovieDB y guardarlas en Strapi
 
 app.post('/api/cargar-g23-peliculas', async (req, res) => {
      try {
@@ -125,7 +121,38 @@ app.post('/api/cargar-g23-peliculas', async (req, res) => {
     let savedMoviesCount = 0;
     let duplicateMoviesCount = 0;
 
-    for (const movie of movies) {
+    for (const movie of movies) { 
+        const existingMovie = await axios.get(`${STRAPI_API_URL}/g23-peliculas`, {
+         params: {
+                 'filters[tmdb_id][$eq]': movie.id 
+                 },
+                 headers: {
+                 Authorization: `Bearer ${process.env.STRAPI_API_TOKEN}`
+                 }
+        });
+             if (existingMovie.data.data.length > 0) {
+                console.log(`Película "${movie.title}" (ID: ${movie.id}) ya existe en Strapi. Saltando.`)
+                await axios.put(`${STRAPI_API_URL}/g23-peliculas/${peliculaId}`, {
+                  data: {
+                    g_23_actors: strapiActorIds.length > 0 ? strapiActorIds : null
+                  }
+                }, {
+                headers: {
+                    Authorization: `Bearer ${process.env.STRAPI_API_TOKEN}`
+                  }
+                });
+                console.log(`Película "${movie.title}" actualizada con actores.`);
+                duplicateMoviesCount++;
+                continue; 
+             }
+
+         const strapiGenreIds = [];
+            for (const tmdbGenreId of movie.genre_ids) {
+            const strapiId = await getStrapiGenreId(tmdbGenreId);
+                if (strapiId) {
+                 strapiGenreIds.push(strapiId);
+                }
+            }
          let strapiActorIds = [];
          try {
             const creditsRes=await axios.get(`${TMDB_BASE_URL}/movie/${movie.id}/credits`, {
@@ -136,7 +163,7 @@ app.post('/api/cargar-g23-peliculas', async (req, res) => {
             });
             const topActors = creditsRes.data.cast.slice(0,3);
             for (const actor of topActors) {
-              //busca si existe en strapi
+      
               const actorRes = await axios.get(`${STRAPI_API_URL}/g23-actors`, {
                 params: {
                   'filters[nombre][$eq]': actor.name
@@ -150,9 +177,9 @@ app.post('/api/cargar-g23-peliculas', async (req, res) => {
            if(actorRes.data.data.length > 0) {
              actorId = actorRes.data.data[0].id;
            } else {
-              //crea actor
+          
              const createActorRes = await axios.post(`${STRAPI_API_URL}/g23-actors`,{
-                data: { nombre: actor.name }
+                data: { nombre: actor.nombre }
              }, {
                headers: {
                 Authorization: `Bearer ${process.env.STRAPI_API_TOKEN}`
@@ -166,28 +193,7 @@ app.post('/api/cargar-g23-peliculas', async (req, res) => {
         console.error(`Error al obtener actores de TMDB para "${movie.title}":`, actorErr.message);
       }
 
-        const existingMovie = await axios.get(`${STRAPI_API_URL}/g23-peliculas`, {
-         params: {
-                 'filters[tmdb_id][$eq]': movie.id 
-                 },
-                 headers: {
-                 Authorization: `Bearer ${process.env.STRAPI_API_TOKEN}`
-                 }
-        });
-             if (existingMovie.data.data.length > 0) {
-                console.log(`Película "${movie.title}" (ID: ${movie.id}) ya existe en Strapi. Saltando.`)
-                duplicateMoviesCount++;
-                continue; 
-             }
-
-         const strapiGenreIds = [];
-            for (const tmdbGenreId of movie.genre_ids) {
-            const strapiId = await getStrapiGenreId(tmdbGenreId);
-                if (strapiId) {
-                 strapiGenreIds.push(strapiId);
-                }
-            }
-        const posterUrl = movie.poster_path ? `${TMDB_IMAGE_BASE_URL}${movie.poster_path}` : null;
+         const posterUrl = movie.poster_path ? `${TMDB_IMAGE_BASE_URL}${movie.poster_path}` : null;
          const strapiMovieData = {
              data: {
                     titulo: movie.title, 
@@ -196,7 +202,7 @@ app.post('/api/cargar-g23-peliculas', async (req, res) => {
                     promedio_votos: movie.vote_average, 
                     g_23_generos: strapiGenreIds.length > 0 ? strapiGenreIds : null,
                     g_23_actors: strapiActorIds.length > 0 ? strapiActorIds : null,
-                    tmdb_id: movie.id, // Es bueno guardar el ID de TMDB para evitar duplicados*/
+                    tmdb_id: movie.id,
                     poster_path: posterUrl, 
                 }
             };
@@ -242,10 +248,10 @@ app.get('/api/g23-peliculas', async (req, res) => {
     const strapiResponse = await axios.get(`${STRAPI_API_URL}/g23-peliculas`, {
     params: {
             'populate': {
-             'g_23_generos': { // Popula el campo de relación g_23_generos
+             'g_23_generos': { 
                 fields: ['nombre'] 
              },
-            'g_23_actors': {  // Popula el campo de relación g_23_actors
+            'g_23_actors': {  
              fields: ['nombre'] 
              }
             }
@@ -258,14 +264,14 @@ app.get('/api/g23-peliculas', async (req, res) => {
    
 const moviesFromStrapi = strapiResponse.data.data.map(item => {
 
-    // Manejo de género
+   
     let generoDisplay = null;
     if (item.g_23_generos && Array.isArray(item.g_23_generos)) {
         generoDisplay = item.g_23_generos.map(g => g.nombre);
     }
    
 
-    // Manejo de actores
+  
     let actorNames = [];
     if (item.g_23_actors && Array.isArray(item.g_23_actors)) {
         actorNames = item.g_23_actors.map(actor => actor.nombre);

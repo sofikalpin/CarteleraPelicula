@@ -1,24 +1,24 @@
 :root {
-    --primary-color: #352B26; /* Darker brown/gray for sidebar */
-    --background-color: #1A1614; /* Very dark background */
-    --text-color: #FFFFFF; /* White text */
-    --button-background-color: #3B2D26; /* Slightly lighter brown for buttons */
-    --hover-color: #70483F; /* More reddish-brown for hover */
-    --active-color: #3a000f; /* Darker red for active state */
-    --border-color: #A07D66; /* Light brown for borders */
-    --card-background: #2e0f12; /* Dark red/brown for movie cards */
-    --rating-color: #FFD700; /* Gold color for ratings */
+    --primary-color: #352B26;
+    --background-color: #1A1614;
+    --text-color: #FFFFFF;
+    --button-background-color: #3B2D26;
+    --hover-color: #70483F;
+    --active-color: #3a000f;
+    --border-color: #A07D66;
+    --card-background: #2e0f12;
+    --rating-color: #FFD700;
     --error-color: #dc3545;
     --success-color: #28a745;
     --info-color: #007bff;
 }
 
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* A bit more modern font */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     margin: 0;
     padding: 0;
     display: grid;
-    grid-template-columns: 200px 1fr; /* Fixed sidebar width, main content flexible */
+    grid-template-columns: 200px 1fr;
     min-height: 100vh;
     grid-template-areas:
         "header header"
@@ -27,62 +27,61 @@ body {
     grid-template-rows: auto 1fr auto;
     background-color: var(--background-color);
     color: var(--text-color);
-    overflow-x: hidden; /* Prevent horizontal scroll */
+    overflow-x: hidden;
 }
 
 header {
     grid-area: header;
-    background-color: var(--primary-color); /* Use primary color for header for prominence */
+    background-color: var(--primary-color);
     border-bottom: 1px solid var(--border-color);
-    padding: 1.5rem 2rem; /* More padding */
+    padding: 1.5rem 2rem;
     display: flex;
     align-items: center;
-    justify-content: center; /* Center content in header */
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); /* Subtle shadow */
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     position: relative;
-    z-index: 10; /* Ensure header is on top */
+    z-index: 10;
 }
 
 header h1 {
-    margin: 0; /* Remove default margin */
-    font-size: 2.2rem; /* Larger font size */
+    margin: 0;
+    font-size: 2.2rem;
     color: var(--text-color);
-    letter-spacing: 1.5px; /* Slight letter spacing */
+    letter-spacing: 1.5px;
 }
 
-/* #logo is not in the provided HTML, but keeping the style for completeness if added */
 #logo {
-    width: 80px; /* Slightly smaller logo */
+    width: 80px;
     height: 80px;
     margin-right: 1.5rem;
     position: absolute;
     left: 2rem;
     top: 50%;
     transform: translateY(-50%);
-    object-fit: contain; /* Ensure logo scales well */
+    object-fit: contain;
 }
 
 main {
     grid-area: main;
-    padding: 2rem 3rem; /* Generous padding for main content */
-    background-color: var(--background-color); /* Ensure main has background color */
-    overflow-y: auto; /* Allow scrolling within main content if needed */
+    padding: 2rem 3rem;
+    background-color: var(--background-color);
+    overflow-y: auto;
 }
 
 aside {
     grid-area: aside;
     background-color: var(--primary-color);
     border-right: 1px solid var(--border-color);
-    padding-top: 1rem; /* Padding at the top of the sidebar */
-    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.3); /* Subtle shadow */
+    padding-top: 1rem;
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.3);
     display: flex;
-    flex-direction: column; /* Stack menu items vertically */
-    align-items: stretch; /* Stretch items to fill width */
+    flex-direction: column;
+    align-items: stretch;
 }
 
 nav {
     color: var(--text-color);
-    height: 100%; /* Make nav fill aside height */
+    height: 100%;
     display: flex;
     flex-direction: column;
 }
@@ -94,74 +93,72 @@ nav {
     display: flex;
     flex-direction: column;
     align-items: stretch;
-    flex-grow: 1; /* Allow menu to grow */
+    flex-grow: 1;
 }
 
 .menuItem {
-    margin-bottom: 0.5rem; /* Space between menu items */
+    margin-bottom: 0.5rem;
 }
 
-.NavBtn { /* Renamed from menuItem button for clarity */
+.NavBtn {
     display: flex;
     align-items: center;
-    justify-content: flex-start; /* Align text and icon to the start */
-    width: 100%; /* Full width within its container */
-    padding: 1.2rem 1.5rem; /* More generous padding */
+    justify-content: flex-start;
+    width: 100%;
+    padding: 1.2rem 1.5rem;
     background-color: var(--button-background-color);
     color: var(--text-color);
     border: none;
     cursor: pointer;
     font-size: 1rem;
-    font-weight: 600; /* Slightly bolder text */
-    transition: background-color 0.3s ease, transform 0.2s ease; /* Smooth transitions */
-    border-radius: 8px; /* Slightly rounded corners */
-    text-align: left; /* Ensure text aligns left */
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Subtle button shadow */
+    font-weight: 600;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    border-radius: 8px;
+    text-align: left;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
 .NavBtn svg {
-    margin-right: 10px; /* Space between icon and text */
-    min-width: 18px; /* Ensure icon doesn't shrink */
+    margin-right: 10px;
+    min-width: 18px;
     min-height: 18px;
 }
 
 .NavBtn:hover {
     background-color: var(--hover-color);
-    transform: translateY(-2px); /* Slight lift effect on hover */
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); /* Enhanced shadow on hover */
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
 }
 
 .NavBtn:active {
     background-color: var(--active-color);
-    transform: translateY(0); /* Return to original position on click */
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2); /* Smaller shadow on active */
+    transform: translateY(0);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
-/* Content Area Layout */
 #content {
     display: grid;
-    /* Define distinct grid areas for each logical component */
     grid-template-areas:
         "label cityselect average-rating"
-        "status-messages status-messages status-messages" /* The new wrapper takes a full row */
+        "status-messages status-messages status-messages"
         "movies movies movies";
-    grid-template-columns: auto 220px 1fr; /* Label, select (fixed width), remaining for average rating */
-    grid-template-rows: auto auto 1fr; /* Row 1: label/select/rating, Row 2: status messages, Row 3: movies */
-    gap: 1.5rem 1rem; /* Gap between rows and columns */
-    align-items: center; /* Vertically align items in the first row */
+    grid-template-columns: auto 220px 1fr;
+    grid-template-rows: auto auto 1fr;
+    gap: 1.5rem 1rem;
+    align-items: center;
 }
 
 #content label[for="citySelect"] {
     grid-area: label;
     font-size: 1.1rem;
     font-weight: 500;
-    white-space: nowrap; /* Prevent label from wrapping */
+    white-space: nowrap;
 }
 
 #citySelect {
     grid-area: cityselect;
     padding: 0.7rem 1rem;
-    border-radius: 8px; /* More rounded */
+    border-radius: 8px;
     border: 1px solid var(--border-color);
     background-color: #fff;
     color: #000;
@@ -169,8 +166,8 @@ nav {
     width: 100%;
     box-sizing: border-box;
     font-size: 1rem;
-    appearance: none; /* Remove default select arrow */
-    background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23000000%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13.2-6.4H18.2c-4.1%200-7.9%201.7-10.6%204.4-2.7%202.7-4.4%206.5-4.4%2010.6s1.7%207.9%204.4%2010.6l128%20127.9c3.2%203.2%207%204.9%2011.2%204.9%204.2%200%208-1.7%2011.2-4.9l128-127.9c3.3-3.2%205-7.5%205-11.7c0-4.3-1.7-8.5-5-11.8z%22%2F%3E%3C%2Fsvg%3E'); /* Custom arrow */
+    appearance: none;
+    background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23000000%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13.2-6.4H18.2c-4.1%200-7.9%201.7-10.6%204.4-2.7%202.7-4.4%206.5-4.4%2010.6s1.7%207.9%204.4%2010.6l128%20127.9c3.2%203.2%207%204.9%2011.2%204.9%204.2%200%208-1.7%2011.2-4.9l128-127.9c3.3-3.2%205-7.5%205-11.7c0-4.3-1.7-8.5-5-11.8z%22%2F%3E%3C%2Fsvg%3E');
     background-repeat: no-repeat;
     background-position: right 1rem center;
     background-size: 1em;
@@ -178,62 +175,57 @@ nav {
 }
 
 #averageRating {
-    grid-area: average-rating; /* Assign to its own distinct grid area */
-    text-align: right; /* Align average rating to the right within its area */
+    grid-area: average-rating;
+    text-align: right;
     padding: 0;
     margin: 0;
     font-weight: bold;
     color: var(--rating-color);
 }
 
-/* Style for the new status messages container */
 #statusMessagesContainer {
-    grid-area: status-messages; /* This container now takes the full status row */
-    position: relative; /* Needed for absolute positioning of children if desired, but flex is better */
-    display: flex; /* Use flexbox to stack messages if multiple are visible */
+    grid-area: status-messages;
+    position: relative;
+    display: flex;
     flex-direction: column;
-    align-items: center; /* Center messages horizontally within the container */
-    gap: 0.5rem; /* Space between messages if multiple are visible (shouldn't happen with correct JS) */
+    align-items: center;
+    gap: 0.5rem;
     margin-top: 1rem;
-    min-height: 2.5rem; /* Ensure some height even if empty to prevent layout shifts */
-    justify-content: center; /* Center content vertically if only one line */
+    min-height: 2.5rem;
+    justify-content: center;
 }
 
-/* General styles for the message paragraphs inside the container */
 #loadStatus, #noMoviesMessage {
-    width: 100%; /* Take full width of the container */
+    width: 100%;
     text-align: center;
     padding: 0.8rem;
-    margin: 0; /* Reset margins as container handles spacing */
+    margin: 0;
     font-weight: 500;
     border-radius: 6px;
     font-size: 1.05rem;
     box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-    /* By default, these should be hidden by JS and shown as needed */
 }
 
 #loadStatus {
-    background-color: rgba(0, 86, 179, 0.1); /* Slightly transparent blue for info */
+    background-color: rgba(0, 86, 179, 0.1);
     color: var(--info-color);
 }
 
 #noMoviesMessage {
-    background-color: rgba(220, 53, 69, 0.1); /* Slightly transparent red for error/warning */
+    background-color: rgba(220, 53, 69, 0.1);
     color: var(--error-color);
     font-weight: bold;
 }
 
-
 #moviesContainer {
     grid-area: movies;
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* Responsive columns */
-    gap: 2rem; /* Increased gap between movie cards */
-    padding-top: 1.5rem; /* Space above movie cards */
-    justify-items: center; /* Center items horizontally in their cells */
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 2rem;
+    padding-top: 1.5rem;
+    justify-items: center;
 }
 
-/* Movie Card Styles (moved from inline to CSS) */
 .movie-card {
     display: flex;
     flex-direction: column;
@@ -242,36 +234,36 @@ nav {
     color: var(--text-color);
     padding-bottom: 1.5rem;
     border-radius: 1rem;
-    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4); /* More pronounced shadow */
-    max-width: 250px; /* Max width for individual cards */
-    width: 100%; /* Ensure it takes full width up to max-width */
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+    max-width: 250px;
+    width: 100%;
     text-align: left;
-    overflow: hidden; /* Hide overflow for rounded corners */
-    transition: transform 0.3s ease, box-shadow 0.3s ease; /* Smooth transitions */
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .movie-card:hover {
-    transform: translateY(-5px); /* Lift card on hover */
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5); /* Stronger shadow on hover */
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
 }
 
 .movie-card img {
     width: 100%;
-    height: 300px; /* Fixed height for consistent image display */
-    object-fit: cover; /* Crop image to fill the space */
+    height: 300px;
+    object-fit: cover;
     border-top-left-radius: 1rem;
     border-top-right-radius: 1rem;
-    filter: brightness(0.9); /* Slightly dim images */
+    filter: brightness(0.9);
     transition: filter 0.3s ease;
 }
 
 .movie-card:hover img {
-    filter: brightness(1); /* Brighten image on hover */
+    filter: brightness(1);
 }
 
 .movie-info {
-    padding: 1.5rem; /* Consistent padding inside info */
-    padding-top: 1rem; /* Slightly less padding at the top */
+    padding: 1.5rem;
+    padding-top: 1rem;
 }
 
 .movie-info h3 {
@@ -279,34 +271,35 @@ nav {
     margin-bottom: 0.5rem;
     font-size: 1.3rem;
     line-height: 1.3;
-    min-height: 3.9rem; /* Allocate space for 3 lines of title */
+    min-height: 3.9rem;
     display: -webkit-box;
-    -webkit-line-clamp: 3; /* Limit title to 3 lines */
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
 .movie-info p {
-    margin: 0.4rem 0; /* Consistent spacing for paragraphs */
+    margin: 0.4rem 0;
     font-size: 0.95rem;
     line-height: 1.4;
 }
 
 .movie-info .rating {
     font-weight: bold;
-    color: var(--rating-color); /* Gold color for rating */
+    color: var(--rating-color);
 }
 
 footer {
     grid-area: footer;
-    background-color: var(--primary-color); /* Use primary color for footer */
+    background-color: var(--primary-color);
     border-top: 1px solid var(--border-color);
     text-align: right;
-    padding: 0.8rem 2rem; /* More padding */
+    padding: 0.8rem 2rem;
     color: var(--text-color);
     font-size: 0.9rem;
-    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.3); /* Subtle shadow */
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.3);
     z-index: 10;
 }
 
@@ -314,7 +307,6 @@ footer p {
     margin: 0;
 }
 
-/* Responsive Adjustments */
 @media (max-width: 768px) {
     body {
         grid-template-columns: 1fr;
@@ -334,7 +326,7 @@ footer p {
     }
 
     nav {
-        flex-direction: row; /* Horizontal menu on small screens */
+        flex-direction: row;
         justify-content: space-around;
         padding: 1rem 0;
     }
@@ -350,7 +342,7 @@ footer p {
         font-size: 0.9rem;
         min-width: unset;
         justify-content: center;
-        border-radius: 0; /* No border-radius on small screens for full width */
+        border-radius: 0;
         box-shadow: none;
     }
     .NavBtn svg {
@@ -358,30 +350,29 @@ footer p {
     }
 
     #content {
-        grid-template-columns: 1fr; /* Single column layout for content */
-        /* Updated grid areas for small screens to prevent overlap */
+        grid-template-columns: 1fr;
         grid-template-areas:
             "label"
             "cityselect"
-            "average-rating" /* Moved averageRating to its own row */
-            "status-messages" /* Status messages get their own row */
+            "average-rating"
+            "status-messages"
             "movies";
         gap: 1rem;
         padding: 1.5rem;
     }
 
     #citySelect {
-        max-width: none; /* Allow select to take full width */
+        max-width: none;
     }
 
     #averageRating {
-        text-align: center; /* Center average rating on small screens */
-        grid-column: auto; /* Let it flow naturally within its grid area */
+        text-align: center;
+        grid-column: auto;
         grid-row: auto;
     }
 
     #moviesContainer {
-        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); /* Adjust card size */
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
         gap: 1.5rem;
     }
 
@@ -411,7 +402,7 @@ footer p {
         padding: 1rem;
     }
     #moviesContainer {
-        grid-template-columns: 1fr; /* Stack movie cards vertically on very small screens */
+        grid-template-columns: 1fr;
         gap: 1rem;
     }
 }
