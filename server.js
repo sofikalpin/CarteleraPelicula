@@ -125,38 +125,7 @@ app.post('/api/cargar-g23-peliculas', async (req, res) => {
     let savedMoviesCount = 0;
     let duplicateMoviesCount = 0;
 
-    for (const movie of movies) { 
-        const existingMovie = await axios.get(`${STRAPI_API_URL}/g23-peliculas`, {
-         params: {
-                 'filters[tmdb_id][$eq]': movie.id 
-                 },
-                 headers: {
-                 Authorization: `Bearer ${process.env.STRAPI_API_TOKEN}`
-                 }
-        });
-             if (existingMovie.data.data.length > 0) {
-                console.log(`Película "${movie.title}" (ID: ${movie.id}) ya existe en Strapi. Saltando.`)
-                await axios.put(`${STRAPI_API_URL}/g23-peliculas/${peliculaId}`, {
-                  data: {
-                    g_23_actors: strapiActorIds.length > 0 ? strapiActorIds : null
-                  }
-                }, {
-                headers: {
-                    Authorization: `Bearer ${process.env.STRAPI_API_TOKEN}`
-                  }
-                });
-                console.log(`Película "${movie.title}" actualizada con actores.`);
-                duplicateMoviesCount++;
-                continue; 
-             }
-
-         const strapiGenreIds = [];
-            for (const tmdbGenreId of movie.genre_ids) {
-            const strapiId = await getStrapiGenreId(tmdbGenreId);
-                if (strapiId) {
-                 strapiGenreIds.push(strapiId);
-                }
-            }
+    for (const movie of movies) {
          let strapiActorIds = [];
          try {
             const creditsRes=await axios.get(`${TMDB_BASE_URL}/movie/${movie.id}/credits`, {
@@ -183,7 +152,7 @@ app.post('/api/cargar-g23-peliculas', async (req, res) => {
            } else {
               //crea actor
              const createActorRes = await axios.post(`${STRAPI_API_URL}/g23-actors`,{
-                data: { nombre: actor.nombre }
+                data: { nombre: actor.name }
              }, {
                headers: {
                 Authorization: `Bearer ${process.env.STRAPI_API_TOKEN}`
@@ -197,7 +166,28 @@ app.post('/api/cargar-g23-peliculas', async (req, res) => {
         console.error(`Error al obtener actores de TMDB para "${movie.title}":`, actorErr.message);
       }
 
-         const posterUrl = movie.poster_path ? `${TMDB_IMAGE_BASE_URL}${movie.poster_path}` : null;
+        const existingMovie = await axios.get(`${STRAPI_API_URL}/g23-peliculas`, {
+         params: {
+                 'filters[tmdb_id][$eq]': movie.id 
+                 },
+                 headers: {
+                 Authorization: `Bearer ${process.env.STRAPI_API_TOKEN}`
+                 }
+        });
+             if (existingMovie.data.data.length > 0) {
+                console.log(`Película "${movie.title}" (ID: ${movie.id}) ya existe en Strapi. Saltando.`)
+                duplicateMoviesCount++;
+                continue; 
+             }
+
+         const strapiGenreIds = [];
+            for (const tmdbGenreId of movie.genre_ids) {
+            const strapiId = await getStrapiGenreId(tmdbGenreId);
+                if (strapiId) {
+                 strapiGenreIds.push(strapiId);
+                }
+            }
+        const posterUrl = movie.poster_path ? `${TMDB_IMAGE_BASE_URL}${movie.poster_path}` : null;
          const strapiMovieData = {
              data: {
                     titulo: movie.title, 

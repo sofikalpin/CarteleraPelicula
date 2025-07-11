@@ -52,8 +52,16 @@ async function fetchAndDisplayMovies() {
             throw new Error(`Error HTTP: ${response.status} - ${response.statusText}`);
         }
         const movies = await response.json();
+        
+        const uniqueMoviesMap = new Map();
+        movies.forEach(movie => {
+            if (!uniqueMoviesMap.has(movie.titulo)) {
+                uniqueMoviesMap.set(movie.titulo, movie);
+            }
+        });
+        const uniqueMovies = Array.from(uniqueMoviesMap.values());
 
-        if (movies.length === 0) {
+        if (uniqueMovies.length === 0) {
             showStatusMessage(noMoviesMessage, 'No hay películas para mostrar. ¡Carga algunas!', 'orange');
             averageRatingElement.textContent = 'N/A';
             return;
@@ -61,14 +69,14 @@ async function fetchAndDisplayMovies() {
 
         let totalRating = 0; // Inicializar el total de rating AQUI, fuera del forEach
 
-        movies.forEach(movie => {
+        uniqueMovies.forEach(movie => {
             totalRating += parseFloat(movie.promedio_votos); // Sumar el promedio de votos (convertido a número)
             const movieCard = makeMovieCard(movie); // Llama a la función makeMovieCard
             moviesContainer.appendChild(movieCard); // Añadir la tarjeta al contenedor
         });
 
         // Calcular y mostrar el rating promedio general
-        const average = totalRating / movies.length;
+        const average = totalRating / uniqueMovies.length;
         averageRatingElement.textContent = average.toFixed(2);
         showStatusMessage(null); // Clear any status message if movies are successfully displayed
 
