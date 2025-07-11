@@ -80,7 +80,7 @@ async function getStrapiGenreId(tmdbGenreId) {
      if (!strapiGenreId) {
      console.log(`Creando género "${tmdbGenreName}" en Strapi...`);
      try {
-        const createResponse = await axios.post(`${STRAPI_API_URL}/g23-generos`, { // <-- SOLUCIÓN 2 AQUÍ
+        const createResponse = await axios.post(`${STRAPI_API_URL}/g23-generos`, { 
             data:{
                 nombre: tmdbGenreName
                 }
@@ -125,7 +125,7 @@ app.post('/api/cargar-g23-peliculas', async (req, res) => {
     let savedMoviesCount = 0;
     let duplicateMoviesCount = 0;
 
-    for (const movie of movies) { // <-- INICIO DEL BUCLE 'FOR' (Solución 1)
+    for (const movie of movies) { 
         const existingMovie = await axios.get(`${STRAPI_API_URL}/g23-peliculas`, {
          params: {
                  'filters[tmdb_id][$eq]': movie.id 
@@ -135,7 +135,17 @@ app.post('/api/cargar-g23-peliculas', async (req, res) => {
                  }
         });
              if (existingMovie.data.data.length > 0) {
-                console.log(`Película "${movie.title}" (ID: ${movie.id}) ya existe en Strapi. Saltando.`);
+                console.log(`Película "${movie.title}" (ID: ${movie.id}) ya existe en Strapi. Saltando.`)
+                await axios.put(`${STRAPI_API_URL}/g23-peliculas/${peliculaId}`, {
+                  data: {
+                    g_23_actors: strapiActorIds.length > 0 ? strapiActorIds : null
+                  }
+                }, {
+                headers: {
+                    Authorization: `Bearer ${process.env.STRAPI_API_TOKEN}`
+                  }
+                });
+                console.log(`Película "${movie.title}" actualizada con actores.`);
                 duplicateMoviesCount++;
                 continue; 
              }
@@ -147,23 +157,62 @@ app.post('/api/cargar-g23-peliculas', async (req, res) => {
                  strapiGenreIds.push(strapiId);
                 }
             }
+         let strapiActorIds = [];
+         try {
+            const creditsRes=await axios.get(`${TMDB_BASE_URL}/movie/${movie.id}/credits`, {
+              params: {
+                api_key: TMDB_API_KEY,
+                lenguage: 'es-ES'
+              }
+            });
+            const topActors = creditsRes.data.cast.slice(0,3);
+            for (const actor of topActors) {
+              //busca si existe en strapi
+              const actorRes = await axios.get(`${STRAPI_API_URL}/g23-actors`, {
+                params: {
+                  'filters[nombre][$eq]': actor.name
+                },
+                headers: {
+                  Authorization: `Bearer ${process.env.STRAPI_API_TOKEN}`
+                }
+           })
+           
+           let actorId;
+           if(actorRes.data.data.length > 0) {
+             actorId = actorRes.data.data[0].id;
+           } else {
+              //crea actor
+             const createActorRes = await axios.post(`${STRAPI_API_URL}/g23-actors`,{
+                data: { nombre: actor.nombre }
+             }, {
+               headers: {
+                Authorization: `Bearer ${process.env.STRAPI_API_TOKEN}`
+               }
+             });
+             actorId = createActorRes.data.data.id;
+           }
+           strapiActorIds.push(actorId);
+         }
+      } catch (actorErr) {
+        console.error(`Error al obtener actores de TMDB para "${movie.title}":`, actorErr.message);
+      }
 
          const posterUrl = movie.poster_path ? `${TMDB_IMAGE_BASE_URL}${movie.poster_path}` : null;
-
          const strapiMovieData = {
              data: {
                     titulo: movie.title, 
                     fecha_estreno: movie.release_date,
                     cantidad_votos: movie.vote_count, 
                     promedio_votos: movie.vote_average, 
-                    g_23_generos: strapiGenreIds.length > 0 ? strapiGenreIds : null, // <-- SOLUCIÓN 3 AQUÍ
+                    g_23_generos: strapiGenreIds.length > 0 ? strapiGenreIds : null,
+                    g_23_actors: strapiActorIds.length > 0 ? strapiActorIds : null,
                     tmdb_id: movie.id, // Es bueno guardar el ID de TMDB para evitar duplicados*/
-                    poster_path: posterUrl, // <-- ¡AÑADE ESTA LÍNEA!
+                    poster_path: posterUrl, 
                 }
             };
 
              try {
-                await axios.post(`${STRAPI_API_URL}/g23-peliculas`, strapiMovieData, { // <-- URL DE LA COLECCIÓN DE PELÍCULAS
+                await axios.post(`${STRAPI_API_URL}/g23-peliculas`, strapiMovieData,{ 
                 headers: {
                      Authorization: `Bearer ${process.env.STRAPI_API_TOKEN}`
                      }
@@ -173,7 +222,7 @@ app.post('/api/cargar-g23-peliculas', async (req, res) => {
              } catch (strapiError) {
              console.error(`Error al guardar la película "${movie.title}" en Strapi:`, strapiError.response ? strapiError.response.data : strapiError.message);
              }
-        } // <-- ¡SOLUCIÓN 1: ESTA LLAVE DE CIERRE '}' ES LA CORRECTA PARA EL BUCLE 'FOR'!
+        } 
 
             res.status(200).json({
             message: `Proceso de carga finalizado. ${savedMoviesCount} películas nuevas guardadas, ${duplicateMoviesCount} películas ya existentes.`,
@@ -260,6 +309,39 @@ const moviesFromStrapi = strapiResponse.data.data.map(item => {
             error: error.message
         });
     }
+});
+app.delete('/api/eliminar-peliculas', async (req, res) => {
+  try {
+    console.log('Iniciando borrado de TODAS las películas en Strapi...');
+    let totalDeleted = 0;
+
+    while (true) {
+      const getRes = await axios.get(`${STRAPI_API_URL}/g23-peliculas`, {
+        params: { pagination: { pageSize: 100 } },
+        headers: {
+          Authorization: `Bearer ${process.env.STRAPI_API_TOKEN}`
+        }
+      });
+
+      const peliculas = getRes.data.data;
+      if (peliculas.length === 0) break;
+
+      for (const peli of peliculas) {
+        await axios.delete(`${STRAPI_API_URL}/g23-peliculas/${peli.id}`, {
+          headers: {
+            Authorization: `Bearer ${process.env.STRAPI_API_TOKEN}`
+          }
+        });
+        console.log(`Eliminada película ID: ${peli.id}`);
+        totalDeleted++;
+      }
+    }
+
+    res.status(200).json({ message: `Se eliminaron ${totalDeleted} películas de Strapi.` });
+  } catch (err) {
+    console.error('Error al eliminar películas:', err.response?.data || err.message);
+    res.status(500).json({ error: err.message });
+  }
 });
 
 app.listen(port, () => {
