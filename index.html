@@ -13,7 +13,7 @@
     <aside>
         <nav>
             <ul class="menu">
-             <li class="menuItem">
+               <li class="menuItem">
                     <button class="NavBtn" id="loadMoviesBtn"> <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
                                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                                 class="lucide lucide-folder-plus-icon" style="margin-right: 6px; vertical-align: middle;">
@@ -46,10 +46,13 @@
                 <option value="Rosario">Rosario</option>
                 <option value="Mendoza">Mendoza</option>
             </select>
-            <div id="moviesContainer"></div>
-            <p id="loadStatus"></p>
-            <p id="noMoviesMessage" style="display: none; color: orange;">No hay películas para mostrar. ¡Carga algunas!</p>
             <p>Rating Promedio General: <span id="averageRating">Cargando...</span></p>
+
+            <div id="statusMessagesContainer">
+                <p id="loadStatus"></p>
+                <p id="noMoviesMessage" style="display: none;"></p>
+            </div>
+            <div id="moviesContainer"></div>
         </section>
     </main>
     <footer>
