@@ -132,16 +132,6 @@ app.post('/api/cargar-g23-peliculas', async (req, res) => {
         });
              if (existingMovie.data.data.length > 0) {
                 console.log(`Película "${movie.title}" (ID: ${movie.id}) ya existe en Strapi. Saltando.`)
-                await axios.put(`${STRAPI_API_URL}/g23-peliculas/${peliculaId}`, {
-                  data: {
-                    g_23_actors: strapiActorIds.length > 0 ? strapiActorIds : null
-                  }
-                }, {
-                headers: {
-                    Authorization: `Bearer ${process.env.STRAPI_API_TOKEN}`
-                  }
-                });
-                console.log(`Película "${movie.title}" actualizada con actores.`);
                 duplicateMoviesCount++;
                 continue; 
              }
